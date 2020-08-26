@@ -28,10 +28,14 @@ public class AppCtr {
     }
 
     private static void createDocuments(MongoClient mongoClient) {
+        MongoCollection<Document> cookies = mongoClient.getDatabase("cook").getCollection("cookies");
+        createDocument(cookies);
+        deleteDocuments(cookies);
+    }
+
+    private static void createDocument(MongoCollection<Document> cookies) {
 
         List<String> ingredients = Arrays.asList("flour", "eggs", "chocolate", "sugar", "red coloring food");
-
-        MongoCollection<Document> cookies = mongoClient.getDatabase("cook").getCollection("cookies");
 
         List<Document> liste = new ArrayList<>();
         for(int i = 1; i <=10 ; i++){
@@ -51,9 +55,10 @@ public class AppCtr {
                     .append("color", "blue")
                     .append("ingredients", ingredients));
         }
-
         cookies.insertMany(liste);
+    }
 
+    private static void deleteDocuments(MongoCollection<Document> cookies) {
         cookies.deleteMany(Filters.in("color", Arrays.asList("yellow", "orange", "blue")));
     }
 
