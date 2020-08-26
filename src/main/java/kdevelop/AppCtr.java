@@ -1,6 +1,7 @@
 package kdevelop;
 
 import com.mongodb.client.*;
+import com.mongodb.client.model.Filters;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -29,19 +30,31 @@ public class AppCtr {
     private static void createDocuments(MongoClient mongoClient) {
 
         List<String> ingredients = Arrays.asList("flour", "eggs", "chocolate", "sugar", "red coloring food");
-        
+
         MongoCollection<Document> cookies = mongoClient.getDatabase("cook").getCollection("cookies");
 
         List<Document> liste = new ArrayList<>();
+        for(int i = 1; i <=10 ; i++){
+            liste.add(new Document("id", i)
+                    .append("color", "yellow")
+                    .append("ingredients", ingredients));
+        }
+
+        for(int i = 1; i <=10 ; i++){
+            liste.add(new Document("id", i)
+                    .append("color", "orange")
+                    .append("ingredients", ingredients));
+        }
+
         for(int i = 1; i <=10 ; i++){
             liste.add(new Document("id", i)
                     .append("color", "blue")
                     .append("ingredients", ingredients));
         }
 
-        cookies.deleteMany(new Document());
-
         cookies.insertMany(liste);
+
+        cookies.deleteMany(Filters.in("color", Arrays.asList("yellow", "orange", "blue")));
     }
 
     private static void printDatabases(MongoClient mongoClient) {
@@ -49,7 +62,7 @@ public class AppCtr {
         dbDocuments.forEach(document -> System.out.println(document.toJson()));
     }
 
-    public static void printDocument(MongoClient mongoClient){
+    private static void printDocument(MongoClient mongoClient){
         MongoCursor<Document> documents =  mongoClient.getDatabase("cook").getCollection("cookies").find().cursor();
         while(documents.hasNext()) System.out.println(documents.next().toJson());
     }
