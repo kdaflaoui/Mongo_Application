@@ -2,11 +2,13 @@ package kdevelop;
 
 import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
 import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class AppCtr {
     //static Logger logger = LoggerFactory.getLogger(AppCtr.class);
@@ -16,21 +18,35 @@ public class AppCtr {
         String connectionURI = "mongodb+srv://admin:admin@mongojavacluster.f3t3e.mongodb.net/<dbname>?retryWrites=true&w=majority";
 
         try(MongoClient mongoClient = MongoClients.create(connectionURI)){
-            MongoIterable<String> strings = mongoClient.listDatabaseNames();
-            MongoCursor<String> cursor = strings.cursor();
+
+            MongoCollection<Document> cookies = mongoClient.getDatabase("cook").getCollection("cookies");
 
             printDatabases(mongoClient);
 
-            createDocuments(mongoClient);
+            deleteAllCookiees(cookies);
+
+            createDocument(cookies);
+
+            deleteDocuments(cookies);
+
+            updateDocument(cookies);
 
             printDocument(mongoClient);
         }
     }
 
-    private static void createDocuments(MongoClient mongoClient) {
-        MongoCollection<Document> cookies = mongoClient.getDatabase("cook").getCollection("cookies");
-        createDocument(cookies);
-        deleteDocuments(cookies);
+    private static void deleteAllCookiees(MongoCollection<Document> cookies) {
+        cookies.deleteMany(new Document());
+    }
+
+    private static void updateDocument(MongoCollection<Document> cookies) {
+        Random random = new Random();
+
+        List<Document> listCookies =  cookies.find().into(new ArrayList<>());
+        listCookies.forEach( cookie -> {
+            Object id = cookie.getObjectId("_id");
+            cookies.findOneAndUpdate(new Document("_id", id), Updates.set("calories", random.nextInt(1000)));
+        });
     }
 
     private static void createDocument(MongoCollection<Document> cookies) {
@@ -38,6 +54,21 @@ public class AppCtr {
         List<String> ingredients = Arrays.asList("flour", "eggs", "chocolate", "sugar", "red coloring food");
 
         List<Document> liste = new ArrayList<>();
+
+        for(int i = 1; i <=10 ; i++){
+            liste.add(new Document("id", i)
+                    .append("color", "brown")
+                    .append("ingredients", ingredients));
+        }
+
+
+        for(int i = 1; i <=10 ; i++){
+            liste.add(new Document("id", i)
+                    .append("color", "orange")
+                    .append("ingredients", ingredients));
+        }
+
+
         for(int i = 1; i <=10 ; i++){
             liste.add(new Document("id", i)
                     .append("color", "yellow")
