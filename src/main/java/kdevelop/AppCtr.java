@@ -4,6 +4,7 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,19 +21,33 @@ public class AppCtr {
         try(MongoClient mongoClient = MongoClients.create(connectionURI)){
 
             MongoCollection<Document> cookies = mongoClient.getDatabase("cook").getCollection("cookies");
-
+            System.out.println("--------------------------------- Print database ------------------------------------------");
             printDatabases(mongoClient);
 
             deleteAllCookiees(cookies);
-
+            System.out.println("------------------------------------- Create ----------------------------------------------");
             createDocument(cookies);
-
-            deleteDocuments(cookies);
-
-            updateDocument(cookies);
-
             printDocument(mongoClient);
+            
+            System.out.println("------------------------------------- delete ----------------------------------------------");
+            deleteDocuments(cookies);
+            printDocument(mongoClient);
+
+            System.out.println("------------------------------------- Update ----------------------------------------------");
+            updateDocument(cookies);
+            printDocument(mongoClient);
+
+            System.out.println("------------------------------------- Filter ----------------------------------------------");
+            findDocuments(cookies);
+
+
         }
+    }
+
+    private static void findDocuments(MongoCollection<Document> cookies) {
+
+        ArrayList<Document> lowCalories = cookies.find(Filters.lt("calories", 500)).into(new ArrayList<>());
+        lowCalories.forEach(document -> System.out.println(document.toJson()));
     }
 
     private static void deleteAllCookiees(MongoCollection<Document> cookies) {
@@ -45,7 +60,9 @@ public class AppCtr {
         List<Document> listCookies =  cookies.find().into(new ArrayList<>());
         listCookies.forEach( cookie -> {
             Object id = cookie.getObjectId("_id");
-            cookies.findOneAndUpdate(new Document("_id", id), Updates.set("calories", random.nextInt(1000)));
+            Document filter = new Document("_id", id);
+            Bson update = Updates.set("calories", random.nextInt(1000));
+            cookies.findOneAndUpdate(filter, update);
         });
     }
 
